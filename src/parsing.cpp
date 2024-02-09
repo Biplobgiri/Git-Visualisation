@@ -81,13 +81,5 @@ void parse(std::vector<std::string> command )
 		}
 	}
 }
-//dsa portion; creating the nodes and trees
-class dsa {
-public:
-	void ran()
-	{
-		int a;
-		
-	}
-};
+
 
