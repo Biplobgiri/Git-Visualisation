@@ -143,7 +143,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\data_structures.cpp" />
+    <ClCompile Include="src\dsa.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\parsing.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
