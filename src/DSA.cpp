@@ -1,14 +1,17 @@
 #include"DSA.hpp"
 #include<iostream>
 
+
 std::unordered_map< std::string, CommitNode*> branches_status;
 std::string current_branch, prev_branch;
-
+std::vector<int> commitidVector;
 std::map<int, CommitNode*> commit_id_map;
 //std::map<int, std::string> commit_id_branchmap;//rm vec
 std::vector<std::string> commitid_branch;
 
 bool recent_branch_change = false;
+
+bool checkoutbyid = false;
 
 CommitNode* pre = NULL;
 //CommitNode* next = NULL;
@@ -16,11 +19,20 @@ CommitNode* head = NULL;//main head before checkout
 CommitNode* detached_head = NULL;//after
 int commit_id_val = 0;
 
+Token_Type what_executed=ERROR;
+
 
 void init_command(parse_return parse_value)
 {
+	if (!branches_status.empty())
+	{
+		std::cout << "git already inited" << std::endl;
+		return;
+	}
 	current_branch = "MASTER";
 	branches_status[current_branch] = nullptr;
+	std::cout << "inited hai inited" << std::endl;
+	what_executed = parse_value.command;
 }
 void commit(parse_return parse_value)
 {
@@ -28,12 +40,14 @@ void commit(parse_return parse_value)
 	node->commit_name = parse_value.msg;
 	node->commit_id = commit_id_val;
 	commit_id_val++;
+	
 	if (detached_head != NULL && detached_head->forward[current_branch] != NULL)
 	{
 		prev_branch = current_branch;
 		recent_branch_change = true;
-		current_branch += "-child";//making a new child branch
+		current_branch += "-c";//making a new child branch
 	}
+
 	if (pre != NULL)
 	{
 		pre->forward[current_branch] = node;
@@ -51,6 +65,12 @@ void commit(parse_return parse_value)
 	pre = node;
 	commit_id_map[node->commit_id] = node;
 	commitid_branch.push_back(current_branch);
+	std::cout << "commited hai commited" << std::endl;
+
+	commitidVector.push_back(node->commit_id);
+	what_executed = parse_value.command;
+
+
 	//condition for commiting in the middle of already exisiting branch remaingn 
 	//output
 
@@ -61,6 +81,10 @@ void branch(parse_return parse_value)
 	//prev_branch = current_branch;
 	current_branch = parse_value.msg;
 	branches_status[current_branch] = nullptr;
+
+	what_executed = parse_value.command;
+
+
 }
 void checkout(parse_return parse_value)
 {
@@ -74,7 +98,10 @@ void checkout(parse_return parse_value)
 		{
 			detached_head = iter->second;
 			found = true;
+			
 			//current_branch = commit_id_branchmap[iter->first];
+			checkoutbyid = true;
+			
 			break;
 		}
 	}
@@ -88,6 +115,7 @@ void checkout(parse_return parse_value)
 				detached_head = iter2->second;
 				found = true;
 				current_branch = iter2->first;
+				checkoutbyid = false;
 				break;
 			}
 		}
@@ -100,6 +128,9 @@ void checkout(parse_return parse_value)
 		std::cout << "The commit id or branchname is invalid" << std::endl;
 		return;
 	}
+	what_executed = parse_value.command;
+	std::cout << "inside the checkout" << std::endl;
+
 }
 void merge_commit(std::string branch_mergeto)
 {
@@ -138,6 +169,7 @@ void merge_commit(std::string branch_mergeto)
 
 	pre = node;
 	commit_id_map[node->commit_id] = node;
+
 }
 void merge(parse_return parse_value)
 {
@@ -150,4 +182,7 @@ void merge(parse_return parse_value)
 		}
 
 	}
+	what_executed = parse_value.command;
+
+
 }

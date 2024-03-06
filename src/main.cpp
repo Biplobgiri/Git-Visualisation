@@ -3,12 +3,23 @@
 #include"DSA.hpp"
 #include "Parser.hpp"
 #include "Input.hpp"
+#include"guiLogic.hpp"
+
+#include"SFML/Graphics.hpp"
+
+#include <SFML/Graphics.hpp>
+#include <locale>
 
 
 
 
-int main()
-{
-	command_input();
-	return 0;
-}
+int main() {
+    Shapesdraw hehe;
+    hehe.mainLoop();
+        return 0;
+    
+    }
+
+
+
+

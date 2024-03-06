@@ -1,6 +1,5 @@
 #pragma once
 #include"DSA.hpp"
-
 void exec(parse_return argument);
-void command_input();
+parse_return command_input(std::string string);
 

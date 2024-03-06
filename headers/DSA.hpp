@@ -6,6 +6,7 @@
 #include<vector>
 #include<cstring>
 
+
 class CommitNode {
 public:
 	int commit_id = 0;

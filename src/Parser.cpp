@@ -102,7 +102,10 @@ parse_return parse(const char* line)
 			break;
 		case INIT:
 			if (i == 2)
-				argument.command = tokenizer.type;
+			{
+				std::cout <<"parser vitra ko init" << std::endl;
+				argument.command = INIT;
+			}
 			else
 				argument.command = ERROR;
 			break;
