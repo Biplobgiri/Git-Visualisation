@@ -6,7 +6,7 @@
 #include<map>
 #include<cmath>
 
-
+bool isNegDist = false;
 
 int circle_count, line_count=0;
 float dist_norm= 20.f, dist_check=200;
@@ -122,7 +122,7 @@ void Shapesdraw::updating_inputs()
 		//Shapesdraw::branchDraw();
 		break;
 	case MERGE:
-		//Shapesdraw::mergeDraw();
+		Shapesdraw::mergeDraw(command_values);
 		break;
 	case CHECKOUT:
 		Shapesdraw::checkoutDraw(command_values);
@@ -134,20 +134,6 @@ void Shapesdraw::updating_inputs()
 	what_executed = ERROR;
 }
 
-void Shapesdraw::connect_circle(sf::Vector2f cir1, sf::Vector2f cir2)
-{
-	sf::Color color;
-	color = sf::Color::Red;
-	sf::Vertex line[] = {
-	sf::Vertex(cir1, color),
-	sf::Vertex(cir2, color)
-	};
-	std::vector<sf::Vector2f> vecVector2f;
-	vecVector2f.push_back(cir1);
-	vecVector2f.push_back(cir2);
-	//vecLines.push_back(vecVector2f);
-	//window.draw(line, 2, sf::Lines);
-}
 
 void Shapesdraw::initDraw()
 {/*
@@ -210,7 +196,6 @@ void Shapesdraw::commitDraw(CommitNode* node)
 
 	
 	drawNormalCommit(cir_position,node);
-	connect_circle(previous_circle->circle->getPosition(), cir_position);
 
 
 	temp.node = node;
@@ -352,7 +337,43 @@ void Shapesdraw::checkoutDraw(parse_return command_value)
 		checkoutDrawbyBranch(command_value.msg);
 	}
 }
+void Shapesdraw::drawLineMerge(sf::Vector2f point1, sf::Vector2f point2) {
 
+	point1 = point1 + sf::Vector2f(cir_radius, cir_radius);
+	point2 = point2 + sf::Vector2f(cir_radius, cir_radius);
+
+	// Calculate the dimensions of the rectangle
+
+	float width = (point2.x - point1.x);
+	float height = (point2.y - point1.y);
+
+	if (point2.x == point1.x)
+	{
+		width = 5.0;
+
+	}
+	else if (point2.y == point2.y)
+	{
+		height = 5.0;
+	}
+
+
+	// Determine the position of the top-left corner of the rectangle
+	float left = std::min(point1.x, point2.x);
+	float top = std::min(point1.y, point2.y);
+
+	// Create rectangle shape
+	sf::RectangleShape rectangle(sf::Vector2f(width, height));
+	rectangle.setPosition(left, top);
+	rectangle.setFillColor(sf::Color::Yellow);
+	rectangle.setOutlineColor(sf::Color::Yellow);
+	rectangle.setOutlineThickness(2);
+	
+
+	line[line_count] = rectangle;
+	line_count++;
+
+}
 
 
 void Shapesdraw::drawLine( sf::Vector2f point1, sf::Vector2f point2) {
@@ -389,5 +410,56 @@ void Shapesdraw::drawLine( sf::Vector2f point1, sf::Vector2f point2) {
 
 	line[line_count] = rectangle;
 	line_count++;
+
+}
+void Shapesdraw::mergeCommit(sf::Vector2f destination, sf::Vector2f current,std::string mergeTobranch)
+{
+	circle_information temp;
+	float distance = 160;
+	CommitNode* node = branches_status[mergeTobranch];
+
+	this->cir_position = { destination.x +distance , (destination.y) };
+	std::cout << "inside of true commit" << std::endl;
+	dist_norm = 160;
+
+	//drawNormalCommit(cir_position, node);
+	this->circle[node->commit_id].setRadius(cir_radius);
+	this->circle[node->commit_id].setPosition(cir_position);
+	this->circle[node->commit_id].setFillColor(sf::Color::Red);
+
+
+	drawLine(cir_position, destination);
+
+	drawLineMerge(current, current + sf::Vector2f{this->cir_position.x - current.x, current.y});
+	drawLineMerge({cir_position.x, current.y},cir_position );
+
+
+
+
+	temp.node = node;
+	temp.circle_id = node->commit_id;
+	temp.branch_information = current_branch;
+	temp.circle = &circle[node->commit_id];
+	temp.circlepos_struct = this->cir_position;
+	vecCircle_information.push_back(temp);
+	*previous_circle = temp;
+	
+}
+
+
+void Shapesdraw::mergeDraw(parse_return command_value)
+{
+	circle_information currentCircle, destinationCircle;
+	currentCircle = *previous_circle;
+
+	for (auto& iter : EndpointInfo)
+	{
+		if (iter.branchName == command_value.msg)
+		{
+			destinationCircle = iter.cirinfoEndpoint;
+		}
+	}
+	mergeCommit(destinationCircle.circlepos_struct,currentCircle.circlepos_struct,command_value.msg);
+
 
 }

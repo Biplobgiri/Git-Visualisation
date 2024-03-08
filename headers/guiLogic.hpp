@@ -22,13 +22,16 @@ public:
 	void commitDraw(CommitNode* node);
 	//void branchDraw();
 	void checkoutDraw(parse_return);
+	void mergeCommit(sf::Vector2f, sf::Vector2f,std::string);
 
 	void checkoutDrawbyID(int);
 	void checkoutDrawbyBranch(std::string);
 
 	void drawLine(sf::Vector2f, sf::Vector2f);
+	void drawLineMerge(sf::Vector2f, sf::Vector2f);
+
 	void textDraw();
-	//void mergeDraw();
+	void mergeDraw(parse_return);
 	sf::Event event;
 	float cir_posX, cir_posY;
 
@@ -40,7 +43,6 @@ public:
 	float line_posX, line_posY;
 	sf::Vector2f* line_position = new sf::Vector2f[100];
 
-	void connect_circle(sf::Vector2f pos1, sf::Vector2f pos2);
 	void drawNormalCommit(sf::Vector2f position, CommitNode* node);
 	void drawCheckedoutCommit(sf::Vector2f position, CommitNode* node);
 
