@@ -1,4 +1,4 @@
-#include"guiLogic.hpp"
+#include"GUILogic.hpp"
 #include"DSA.hpp"
 #include"Input.hpp"
 #include<iostream>
@@ -7,41 +7,66 @@
 #include<cmath>
 
 
-	int commit_count = 0;
-	int line_count = 0;
-	extern Token_Type what_executed;
-	extern std::map<int, CommitNode*> commit_id_map;
-	extern std::vector<int> commitidVector;
-	extern std::unordered_map< std::string, CommitNode*> branches_status;
-	extern int commit_id_val;
-	std::map< sf::CircleShape*,int> circle_commitid;
-	extern std::string current_branch;
-	bool recent_checkout;
-	extern CommitNode* detached_head;
-	sf::CircleShape checkedout_circle;
-	sf::Font font;
-	struct cir_info {
-		std::string branch;
-		sf::CircleShape branch_circle;
-		sf::Text text;
-	}tempcir_info;
-	std::vector<cir_info> circle_infos;
+
+int circle_count, line_count=0;
+float dist_norm= 20.f, dist_check=200;
+bool isChecked_out;
+extern bool isCheckbyid;
+float window_sizeY=800;
 
 
 
+extern std::string current_branch;
+extern int checkedoutid;
+extern std::unordered_map< std::string, CommitNode*> branches_status;
+extern Token_Type what_executed;
+bool branch_endpoint = false;
+
+struct circle_information {
+	CommitNode* node;
+	sf::CircleShape* circle;
+	int circle_id;
+	std::string branch_information;
+	sf::Vector2f circlepos_struct;
+	circle_information()
+	{
+		circle_id = 0;
+		branch_information = "";
+		node = nullptr;
+
+	}
+};
+
+struct branchEndpoint {
+	circle_information cirinfoEndpoint;
+	std::string branchName;
+	branchEndpoint() {
+		cirinfoEndpoint.circle_id = -1;
+	}
+};
+branchEndpoint EndpointInfo[3];
+
+static struct circle_information* previous_circle=new struct circle_information;
 
 
-	
+struct circle_information* checkedOut_circle = new struct circle_information;
+
+
+std::vector<circle_information> vecCircle_information;
+
+
 Shapesdraw::Shapesdraw()
 {
 	window.create({ 800, 800 }, "Main window");
 	window.setFramerateLimit(60);
-
+	previous_circle->circlepos_struct = { 0,window_sizeY / 2 };
+	previous_circle->circle = new sf::CircleShape;
+	previous_circle->circle->setPosition(previous_circle->circlepos_struct);
 
 }
 Shapesdraw::~Shapesdraw()
 {
-	
+
 }
 void Shapesdraw::mainLoop()
 {
@@ -57,245 +82,312 @@ void Shapesdraw::mainLoop()
 		}
 
 		updating_inputs();
-		window.clear(sf::Color::Black);
-		for (int i = 0; i < commit_count; i++)
-		{
-			window.draw(circle[i]);
-	
-		}
+		window.clear(sf::Color::Green);
+
 		for (int i = 0; i < line_count; i++)
 		{
 			window.draw(line[i]);
 		}
-		for (auto &iter : circle_infos)
-		{ 
-		window.draw(iter.text);
+		
+		for (auto& iter : vecCircle_information)
+		{
+			window.draw(*iter.circle);
 		}
+
+
 		window.display();
 	}
-	
+
 }
 
 void Shapesdraw::updating_inputs()
 {
 	parse_return command_values;
-		std::string input_terminal;
-		//input_terminal = userInput;
-		std::getline(std::cin, input_terminal);
-		command_values=command_input(input_terminal);
-		std::cout << "-----------------"<<what_executed<<"------------------------" << std::endl;
-		
-		switch (what_executed)
-		{
-		case INIT:
+	std::string input_terminal;
+	//input_terminal = userInput;
+	std::getline(std::cin, input_terminal);
+	command_values = command_input(input_terminal);
+	std::cout << "-----------------" << what_executed << "------------------------" << std::endl;
 
-			Shapesdraw::initDraw();
+	switch (what_executed)
+	{
+	case INIT:
 
-			break;
-		case COMMIT:
-			Shapesdraw::commitDraw();
-			break;
-		case BRANCH:
-			//Shapesdraw::branchDraw();
-			break;
-		case MERGE:
-			//Shapesdraw::mergeDraw();
-			break;
-		case CHECKOUT:
-			Shapesdraw::checkoutDraw();
-			break;
-		default:
-			break;
+		Shapesdraw::initDraw();
+		break;
+	case COMMIT:
+		Shapesdraw::commitDraw(branches_status[current_branch]);
+		break;
+	case BRANCH:
+		//Shapesdraw::branchDraw();
+		break;
+	case MERGE:
+		//Shapesdraw::mergeDraw();
+		break;
+	case CHECKOUT:
+		Shapesdraw::checkoutDraw(command_values);
+		break;
+	default:
+		break;
 
-		}
-		what_executed = ERROR;
 	}
-//}
+	what_executed = ERROR;
+}
 
-void Shapesdraw::initDraw() {
+void Shapesdraw::connect_circle(sf::Vector2f cir1, sf::Vector2f cir2)
+{
+	sf::Color color;
+	color = sf::Color::Red;
+	sf::Vertex line[] = {
+	sf::Vertex(cir1, color),
+	sf::Vertex(cir2, color)
+	};
+	std::vector<sf::Vector2f> vecVector2f;
+	vecVector2f.push_back(cir1);
+	vecVector2f.push_back(cir2);
+	//vecLines.push_back(vecVector2f);
+	//window.draw(line, 2, sf::Lines);
+}
 
-	this->line_position[0] = { 0, (float)window.getSize().y /2};
+void Shapesdraw::initDraw()
+{/*
+	this->line_position[0] = { 0, (float)window_sizeY / 2 };
 	this->line[0].setPosition(line_position[0]);
 	this->line[0].setSize(sf::Vector2f(40, 10));
 	this->line[0].setFillColor(sf::Color::Red);
-	this->cir_center[0].x = line_position[0].x +line[0].getSize().x;
-	this->cir_center[0].y = line_position[0].y + line[0].getSize().y;
+	this->cir_position[0].x = line_position[0].x + line[0].getSize().x;
+	this->cir_position[0].y = line_position[0].y + line[0].getSize().y;*/
+
+
+	sf::Vector2f o= { 0-cir_radius,400};
+	sf::Vector2f n = previous_circle->circlepos_struct + sf::Vector2f{cir_radius, cir_radius};
+	drawLine(o,n);
 	std::cout << "initdraw bhayo" << std::endl;
-	
-	line_count++;
+
 }
-void Shapesdraw::commitDraw()
+
+
+
+void Shapesdraw::drawNormalCommit(sf::Vector2f cir_position, CommitNode* node)
 {
-	if (recent_checkout==true )
+	this->circle[node->commit_id].setRadius(cir_radius);
+	this->circle[node->commit_id].setPosition(cir_position);
+	this->circle[node->commit_id].setFillColor(sf::Color::Red);
+
+	drawLine(previous_circle->circlepos_struct, cir_position);
+}
+
+
+
+
+void Shapesdraw::commitDraw(CommitNode* node)
+{
+	circle_information temp;
+	std::cout << "branch==" << current_branch << std::endl;
+	if (branch_endpoint)
 	{
-		/*for (auto& iter : detached_head->forward)
+		this->cir_position = { checkedOut_circle->circlepos_struct.x + dist_norm, checkedOut_circle->circlepos_struct.y };
+		std::cout << "inside of true commit" << std::endl;
+		dist_norm = 160;
+	}
+	if (!isChecked_out)
+	{
+		this->cir_position = { previous_circle->circlepos_struct.x + dist_norm, previous_circle->circlepos_struct.y };
+		std::cout << "inside of normal commit"<< std::endl;
+		dist_norm = 160;
+	}
+	if (!branch_endpoint){
+		if (isChecked_out)
 		{
-			if (iter.second == NULL)
+			this->cir_position = { checkedOut_circle->circlepos_struct.x , checkedOut_circle->circlepos_struct.y - dist_check };
+			previous_circle = checkedOut_circle;
+			isChecked_out = false;
+			std::cout << "inside of not branch commit" << std::endl;
+		}
+
+}
+
+
+	
+	drawNormalCommit(cir_position,node);
+	connect_circle(previous_circle->circle->getPosition(), cir_position);
+
+
+	temp.node = node;
+	temp.circle_id = node->commit_id;
+	temp.branch_information = current_branch;
+	temp.circle = &circle[node->commit_id];
+	temp.circlepos_struct = this->cir_position;
+	vecCircle_information.push_back(temp);
+	*previous_circle = temp;
+	if (current_branch == "MASTER")
+	{
+		EndpointInfo[0].branchName = temp.branch_information;
+		EndpointInfo[0].cirinfoEndpoint = temp;
+		return;
+	}
+	else {
+		EndpointInfo[1].branchName = temp.branch_information;
+		EndpointInfo[1].cirinfoEndpoint = temp;
+		return;
+	}
+
+
+}
+void Shapesdraw::checkoutDrawbyID(int checked_out_id)
+{
+	if (!branch_endpoint) {
+
+		for (auto& iter : vecCircle_information)
+		{
+			if (iter.circle_id == checked_out_id)
 			{
-			recent_checkout = false;
-			int tempCommitcount = detached_head->commit_id;
-			int templineCount = tempCommitcount + 1;
-			
-			this->circle[commit_count].setRadius(cir_radius);
-			this->cir_center[commit_count].x = this->line[templineCount].getPosition().x + this->line[templineCount].getSize().x;// +circle[commit_count].getRadius();
-			this->cir_center[commit_count].y = this->line[templineCount].getPosition().y - this->circle[commit_count].getRadius();
-			this->circle[commit_count].setPosition(cir_center[commit_count]);
-			this->circle[commit_count].setFillColor(sf::Color::Green);
-
-			this->line_position[line_count].x = this->cir_center[commit_count].x + 2 * cir_radius;
-			this->line_position[line_count].y = this->cir_center[commit_count].y + cir_radius;
-
-			this->line[line_count].setPosition(line_position[line_count]);
-			this->line[line_count].setSize(sf::Vector2f(40, 10));
-			this->line[line_count].setFillColor(sf::Color::Red);
-
-			tempcir_info.branch_circle = circle[commit_count];
-			tempcir_info.branch = current_branch;
-
-
-			for (auto& iter : circle_infos)
-			{
-				if (iter.branch == tempcir_info.branch)
-					iter = tempcir_info;
+				*checkedOut_circle = iter;
+				std::cout << "checkoutdrawbyid not" << std::endl;
 			}
-			circle_infos.push_back(tempcir_info);
+		}
+	}
+
+	if (branch_endpoint) {
+		for (auto& iter : vecCircle_information)
+		{
+			if (iter.circle_id == checked_out_id)
+			{
+				*checkedOut_circle = iter;
+				std::cout << "checkoutdrawbyid yes" << std::endl;
+
+			}
+		}
+		isChecked_out = false;
+		*previous_circle = *checkedOut_circle;
+	}
 
 
 
-			circle_infos.push_back(tempcir_info);
-
-			guiCommitid_shape[commitidVector.back()] = &circle[commit_count];
-
-			textDraw();
 
 
-			std::cout << "commit draw bhayo" << std::endl;
-			commit_count++;
-			line_count++;
 
+}
+void Shapesdraw::checkoutDrawbyBranch(std::string checkedout_branchName)
+{
+	CommitNode* temp;
+#ifndef branch_endpoint
+	for (auto& iter : branches_status)
+	{
+		if (iter.first == checkedout_branchName)
+		{
+			temp = iter.second;
+			for (auto& iter : vecCircle_information)
+			{
+				if (iter.node == temp)
+				{
+					*checkedOut_circle = iter;
+				}
 			}
 			return;
-		}
-		*/
-		
-		this->circle[commit_count].setRadius(cir_radius);
-		this->circle[commit_count].setFillColor(sf::Color::Green);
-		this->cir_center[commit_count].x = checkedout_circle.getPosition().x;
-		this->cir_center[commit_count].y = checkedout_circle.getPosition().y - 6 * cir_radius;
-		circle[commit_count].setPosition(cir_center[commit_count]);
-		std::cout << "checmout commit" << std::endl;
-
-		this->line_position[line_count].x = cir_center[commit_count].x + cir_radius;
-		this->line_position[line_count].y = cir_center[commit_count].y + 2 * cir_radius;
-		this->line[line_count].setPosition(line_position[line_count]);
-		this->line[line_count].setSize(sf::Vector2f(10, 4*cir_radius));
-		this->line[line_count].setFillColor(sf::Color::Yellow);
-
-		line_count++;
-
-		this->line_position[line_count].x = this->cir_center[commit_count].x + 2 * cir_radius;
-		this->line_position[line_count].y = this->cir_center[commit_count].y + cir_radius;
-
-		this->line[line_count].setPosition(line_position[line_count]);
-		this->line[line_count].setSize(sf::Vector2f(40, 10));
-		this->line[line_count].setFillColor(sf::Color::Red);
-
-		tempcir_info.branch_circle = circle[commit_count];
-		tempcir_info.branch = current_branch;
-
-		circle_infos.push_back(tempcir_info);
-		
-		guiCommitid_shape[commitidVector.back()] = &circle[commit_count];
-
-		circle_commitid[&circle[commit_count]] = commit_id_val;
-
-		circle_infos.push_back(tempcir_info);
-
-		textDraw();
-
-
-		std::cout << "checkout draw bhayo" << std::endl;
-		commit_count++;
-		line_count++;
-		recent_checkout = false;
-		
-		return;
 
 	}
-	
+}
 
-	this->circle[commit_count].setRadius(cir_radius);
-	this->cir_center[commit_count].x = this->line[line_count - 1].getPosition().x + this->line[line_count - 1].getSize().x;// +circle[commit_count].getRadius();
-	this->cir_center[commit_count].y = this->line[line_count - 1].getPosition().y-this->circle[commit_count].getRadius();
-	this->circle[commit_count].setPosition(cir_center[commit_count]);
-	this->circle[commit_count].setFillColor(sf::Color::Green);
-
-	this->line_position[line_count].x = this->cir_center[commit_count].x + 2 * cir_radius;
-	this->line_position[line_count].y = this->cir_center[commit_count].y + cir_radius;
-
-	this->line[line_count].setPosition(line_position[line_count]);
-	this->line[line_count].setSize(sf::Vector2f(40, 10));
-	this->line[line_count].setFillColor(sf::Color::Red);
-
-	tempcir_info.branch_circle = circle[commit_count];
-	tempcir_info.branch = current_branch;
+#endif // !branch_endpoint
 
 
-		for (auto &iter : circle_infos)
+#ifdef branch_endpoint
+	for (auto& iter : branches_status)
+	{
+		if (iter.first == checkedout_branchName)
 		{
-			if (iter.branch == tempcir_info.branch)
-				iter = tempcir_info;
+			temp = iter.second;
+			for (auto& iter : vecCircle_information)
+			{
+				if (iter.node == temp)
+				{
+					*checkedOut_circle = iter;
+					*previous_circle = *checkedOut_circle;
+					isChecked_out = false;
+					return;
+
+				}
+			}
+			
+
 		}
-		circle_infos.push_back(tempcir_info);
+	}
+
+#endif // !branch_endpoint
 
 
-
-	circle_infos.push_back(tempcir_info);
-
-	guiCommitid_shape[commitidVector.back()] = &circle[commit_count];
-
-	textDraw();
-
-
-	std::cout << "commit draw bhayo" << std::endl;
-	commit_count++;
-	line_count++;
 	
-
 }
-void Shapesdraw::checkoutDraw()
+void Shapesdraw::checkoutDraw(parse_return command_value)
 {
+	isChecked_out = true;
+	branch_endpoint = false;
+	int commitedCircleID = stoi(command_value.msg);
 
-	checkedout_circle = *guiCommitid_shape[detached_head->commit_id];
-	recent_checkout = true;
+
+	if (isCheckbyid)
+	{
+		for (int i=0;i<3;i++)
+		{
+			if (commitedCircleID == EndpointInfo[i].cirinfoEndpoint.circle_id)
+			{
+				std::cout << "loopvitra" << std::endl;
+
+				branch_endpoint = true;
+			}
+		}
+
+		checkoutDrawbyID(commitedCircleID);
+	}
+	else
+	{
+		for (auto& iter : EndpointInfo)
+		{
+			if (command_value.msg == iter.cirinfoEndpoint.branch_information)
+			{
+				branch_endpoint = true;
+			}
+		}
+		checkoutDrawbyBranch(command_value.msg);
+	}
+}
 
 
+
+void Shapesdraw::drawLine( sf::Vector2f point1, sf::Vector2f point2) {
+
+	point1 = point1 + sf::Vector2f(cir_radius, cir_radius);
+	point2 = point2 + sf::Vector2f(cir_radius, cir_radius);
+
+	// Calculate the dimensions of the rectangle
+
+		float width = abs(point2.x - point1.x);
+		float height = abs(point2.y - point1.y);
+
+		if (point2.x == point1.x)
+		{
+			width = 5.0;
+			
+		}
+		else if(point2.y == point2.y)
+		{
+			height = 5.0;
+		}
+
+
+	// Determine the position of the top-left corner of the rectangle
+	float left = std::min(point1.x, point2.x);
+	float top = std::min(point1.y, point2.y);
+
+	// Create rectangle shape
+	sf::RectangleShape rectangle(sf::Vector2f(width, height));
+	rectangle.setPosition(left, top);
+	rectangle.setFillColor(sf::Color::White);
+	rectangle.setOutlineColor(sf::Color::White);
+	rectangle.setOutlineThickness(2);
+
+	line[line_count] = rectangle;
+	line_count++;
 
 }
-void Shapesdraw::textDraw()
-{
-	if (commitidVector.empty())
-	{
-		return;
-	}
-	if (!font.loadFromFile("arial.ttf")) {
-		// Handle font loading error
-		return ;
-	}
-
-	for (auto& iter : circle_infos)
-	{
-		iter.text.setFont(font);
-		iter.text.setString(iter.branch);
-		iter.text.setCharacterSize(24);
-		iter.text.setFillColor(sf::Color::White);
-		iter.text.setPosition(iter.branch_circle.getPosition().x,
-			iter.branch_circle.getPosition().y + iter.branch_circle.getRadius() * 2 + 10); // Position text beneath the circle
-	}
-
-}
-
-
-
-
-

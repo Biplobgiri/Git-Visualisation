@@ -8,10 +8,10 @@ std::vector<int> commitidVector;
 std::map<int, CommitNode*> commit_id_map;
 //std::map<int, std::string> commit_id_branchmap;//rm vec
 std::vector<std::string> commitid_branch;
+int checkedoutid;
 
 bool recent_branch_change = false;
-
-bool checkoutbyid = false;
+bool isCheckbyid = false;
 
 CommitNode* pre = NULL;
 //CommitNode* next = NULL;
@@ -81,7 +81,6 @@ void branch(parse_return parse_value)
 	//prev_branch = current_branch;
 	current_branch = parse_value.msg;
 	branches_status[current_branch] = nullptr;
-
 	what_executed = parse_value.command;
 
 
@@ -98,9 +97,9 @@ void checkout(parse_return parse_value)
 		{
 			detached_head = iter->second;
 			found = true;
-			
+			checkedoutid = iter->first;
 			//current_branch = commit_id_branchmap[iter->first];
-			checkoutbyid = true;
+			isCheckbyid = true;
 			
 			break;
 		}
@@ -115,7 +114,7 @@ void checkout(parse_return parse_value)
 				detached_head = iter2->second;
 				found = true;
 				current_branch = iter2->first;
-				checkoutbyid = false;
+				isCheckbyid = false;
 				break;
 			}
 		}

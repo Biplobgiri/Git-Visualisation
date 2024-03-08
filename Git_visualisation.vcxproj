@@ -24,14 +24,12 @@
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Parser.cpp" />
-    <ClCompile Include="src\GUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\DSA.hpp" />
-    <ClInclude Include="headers\GUI.hpp" />
     <ClInclude Include="headers\guiLogic.hpp" />
     <ClInclude Include="headers\Input.hpp" />
     <ClInclude Include="headers\Parser.hpp" />
