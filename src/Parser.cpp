@@ -103,7 +103,6 @@ parse_return parse(const char* line)
 		case INIT:
 			if (i == 2)
 			{
-				std::cout <<"parser vitra ko init" << std::endl;
 				argument.command = INIT;
 			}
 			else

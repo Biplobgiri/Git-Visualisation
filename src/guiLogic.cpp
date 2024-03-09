@@ -62,6 +62,7 @@ std::vector<circle_information> vecCircle_information;
 Shapesdraw::Shapesdraw()
 {
 	window.create({ 1200, 1000 }, "Main window");
+	window.setPosition({ 20, 0 });
 	window.setFramerateLimit(60);
 	previous_circle->circlepos_struct = { 0,window_sizeY / 2 };
 	previous_circle->circle = new sf::CircleShape;
@@ -130,9 +131,11 @@ void Shapesdraw::updating_inputs()
 	parse_return command_values;
 	std::string input_terminal;
 	//input_terminal = userInput;
+	std::cout << "*" << std::endl;
 	std::getline(std::cin, input_terminal);
+	
+	
 	command_values = command_input(input_terminal);
-	std::cout << "-----------------" << what_executed << "------------------------" << std::endl;
 
 	switch (what_executed)
 	{
@@ -156,24 +159,18 @@ void Shapesdraw::updating_inputs()
 		break;
 
 	}
+	std::cout << std::endl;
 	what_executed = ERROR;
 }
 
 
 void Shapesdraw::initDraw()
-{/*
-	this->line_position[0] = { 0, (float)window_sizeY / 2 };
-	this->line[0].setPosition(line_position[0]);
-	this->line[0].setSize(sf::Vector2f(40, 10));
-	this->line[0].setFillColor(sf::Color::Red);
-	this->cir_position[0].x = line_position[0].x + line[0].getSize().x;
-	this->cir_position[0].y = line_position[0].y + line[0].getSize().y;*/
+{
 
 
 	sf::Vector2f o= { 0-cir_radius,window_sizeY/2};
 	sf::Vector2f n = previous_circle->circlepos_struct + sf::Vector2f{cir_radius, cir_radius};
 	drawLine(o,n);
-	std::cout << "initdraw bhayo" << std::endl;
 
 }
 
@@ -197,17 +194,14 @@ void Shapesdraw::commitDraw(CommitNode* node)
 {
 
 	circle_information temp;
-	std::cout << "branch==" << current_branch << std::endl;
 	if (branch_endpoint)
 	{
 		this->cir_position = { checkedOut_circle->circlepos_struct.x + dist_norm, checkedOut_circle->circlepos_struct.y };
-		std::cout << "inside of true commit" << std::endl;
 		dist_norm = 160;
 	}
 	if (!isChecked_out)
 	{
 		this->cir_position = { previous_circle->circlepos_struct.x + dist_norm, previous_circle->circlepos_struct.y };
-		std::cout << "inside of normal commit"<< std::endl;
 		dist_norm = 160;
 	}
 	if (!branch_endpoint){
@@ -216,7 +210,6 @@ void Shapesdraw::commitDraw(CommitNode* node)
 			this->cir_position = { checkedOut_circle->circlepos_struct.x , checkedOut_circle->circlepos_struct.y - dist_check };
 			previous_circle = checkedOut_circle;
 			isChecked_out = false;
-			std::cout << "inside of not branch commit" << std::endl;
 		}
 
 }
@@ -353,7 +346,6 @@ void Shapesdraw::checkoutDraw(parse_return command_value)
 		{
 			if (commitedCircleID == EndpointInfo[i].cirinfoEndpoint.circle_id)
 			{
-				std::cout << "loopvitra" << std::endl;
 
 				branch_endpoint = true;
 			}
@@ -433,11 +425,9 @@ void Shapesdraw::drawLine( sf::Vector2f point1, sf::Vector2f point2) {
 		}
 
 
-	// Determine the position of the top-left corner of the rectangle
 	float left = std::min(point1.x, point2.x);
 	float top = std::min(point1.y, point2.y);
 
-	// Create rectangle shape
 	sf::RectangleShape rectangle(sf::Vector2f(width, height));
 	rectangle.setPosition(left, top);
 	rectangle.setFillColor(sf::Color::White);
@@ -526,7 +516,7 @@ void Shapesdraw::textDraw()
 				iter.text1.setCharacterSize(24);
 				iter.text1.setFillColor(sf::Color::White);
 				iter.text1.setPosition(iter.circlepos_struct.x+cir_radius/4,
-				iter.circlepos_struct.y + cir_radius-4 );
+				iter.circlepos_struct.y + cir_radius-8 );
 			}
 		}
  // Position text beneath the circle

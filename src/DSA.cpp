@@ -18,7 +18,6 @@ bool recent_branch_change = false;
 bool isCheckbyid = false;
 
 CommitNode* pre = NULL;
-//CommitNode* next = NULL;
 CommitNode* head = NULL;//main head before checkout
 CommitNode* detached_head = NULL;//after
 int commit_id_val = 0;
@@ -36,25 +35,17 @@ void init_command(parse_return parse_value)
 	}
 	current_branch = "MASTER";
 	branches_status[current_branch] = nullptr;
-	std::cout << "inited hai inited" << std::endl;
 	what_executed = parse_value.command;
 }
 void commit(parse_return parse_value)
 {
-	//commit_id_val = rand_gen();
 	CommitNode* node = new CommitNode();
 	node->commit_name = parse_value.msg;
 
 	node->commit_id = commit_id_val;
 	commit_id_val++;
 	
-/*	if (detached_head != NULL && detached_head->forward[current_branch] != NULL)
-	{
-		prev_branch = current_branch;
-		recent_branch_change = true;
-		current_branch = "master-child";//making a new child branch
-	}
-	*/
+
 
 
 
@@ -75,23 +66,23 @@ void commit(parse_return parse_value)
 	pre = node;
 	commit_id_map[node->commit_id] = node;
 	commitid_branch.push_back(current_branch);
-	std::cout << "commited hai commited" << std::endl;
 
 	commitidVector.push_back(node->commit_id);
 	what_executed = parse_value.command;
 
-
-	//condition for commiting in the middle of already exisiting branch remaingn 
-	//output
+	std::cout << "Commited" << std::endl;
+	
+	
 
 }
 void branch(parse_return parse_value)
 {
-	//recent_branch_change = true;
-	//prev_branch = current_branch;
+
 	current_branch = parse_value.msg;
 	branches_status[current_branch] = nullptr;
 	what_executed = parse_value.command;
+
+	std::cout << "Branched" << std::endl;
 
 
 }
@@ -137,8 +128,8 @@ void checkout(parse_return parse_value)
 		std::cout << "The commit id or branchname is invalid" << std::endl;
 		return;
 	}
+	std::cout << "Checked Out" << std::endl;
 	what_executed = parse_value.command;
-	std::cout << "inside the checkout" << std::endl;
 
 }
 void merge_commit(std::string branch_mergeto)
@@ -149,6 +140,8 @@ void merge_commit(std::string branch_mergeto)
 		std::cout << "You tried to merge early" << std::endl;
 		return;
 	}
+	std::cout << "Merged" << std::endl;
+
 	CommitNode* traverse;
 	traverse = branches_status[current_branch];
 	while (traverse != NULL)
