@@ -1,3 +1,5 @@
 Git_visualisation.vcxproj.user
 x64
 .vs
+headers/GUI.hpp
+src/GUI.cpp

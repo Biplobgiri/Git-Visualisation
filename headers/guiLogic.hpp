@@ -7,7 +7,7 @@
 class Shapesdraw
 {
 public:
-
+	std::map<int, int>commitid_circleid;
 
 	sf::CircleShape* circle = new sf::CircleShape[100];
 	sf::RectangleShape* line = new sf::RectangleShape[100];
@@ -26,6 +26,7 @@ public:
 
 	void checkoutDrawbyID(int);
 	void checkoutDrawbyBranch(std::string);
+
 
 	void drawLine(sf::Vector2f, sf::Vector2f);
 	void drawLineMerge(sf::Vector2f, sf::Vector2f);

@@ -8,11 +8,12 @@
 
 bool isNegDist = false;
 
-int circle_count, line_count=0;
+int circle_count=0, line_count=0;
 float dist_norm= 20.f, dist_check=200;
 bool isChecked_out;
 extern bool isCheckbyid;
-float window_sizeY=800;
+float window_sizeY=1000;
+sf::Font font;
 
 
 
@@ -22,12 +23,15 @@ extern std::unordered_map< std::string, CommitNode*> branches_status;
 extern Token_Type what_executed;
 bool branch_endpoint = false;
 
+
+
 struct circle_information {
 	CommitNode* node;
 	sf::CircleShape* circle;
 	int circle_id;
 	std::string branch_information;
 	sf::Vector2f circlepos_struct;
+	sf::Text text1,text2;
 	circle_information()
 	{
 		circle_id = 0;
@@ -57,7 +61,7 @@ std::vector<circle_information> vecCircle_information;
 
 Shapesdraw::Shapesdraw()
 {
-	window.create({ 800, 800 }, "Main window");
+	window.create({ 1200, 1000 }, "Main window");
 	window.setFramerateLimit(60);
 	previous_circle->circlepos_struct = { 0,window_sizeY / 2 };
 	previous_circle->circle = new sf::CircleShape;
@@ -70,6 +74,23 @@ Shapesdraw::~Shapesdraw()
 }
 void Shapesdraw::mainLoop()
 {
+	sf::Texture texture;
+	texture.loadFromFile("bg.jpg");
+	sf::Sprite sprite;
+	sf::Vector2u size = texture.getSize();
+	sprite.setTexture(texture);
+	sprite.setOrigin(size.x / 2, size.y / 2);
+
+	sf::Texture logo;
+	logo.loadFromFile("logo.png");
+	sf::Sprite spriteLogo;
+	
+	sf::Vector2u sizee = logo.getSize();
+	spriteLogo.setTexture(logo);
+	spriteLogo.setOrigin(sizee.x / 2, sizee.y / 2);
+	spriteLogo.setPosition(100, 100);
+	spriteLogo.scale(.25f,.25f);
+
 	while (this->window.isOpen())
 	{
 		//sf::Event event;
@@ -82,8 +103,9 @@ void Shapesdraw::mainLoop()
 		}
 
 		updating_inputs();
-		window.clear(sf::Color::Green);
-
+		window.clear();
+		window.draw(sprite);
+		window.draw(spriteLogo);
 		for (int i = 0; i < line_count; i++)
 		{
 			window.draw(line[i]);
@@ -92,7 +114,10 @@ void Shapesdraw::mainLoop()
 		for (auto& iter : vecCircle_information)
 		{
 			window.draw(*iter.circle);
+			window.draw(iter.text1);
+			window.draw(iter.text2);
 		}
+
 
 
 		window.display();
@@ -145,7 +170,7 @@ void Shapesdraw::initDraw()
 	this->cir_position[0].y = line_position[0].y + line[0].getSize().y;*/
 
 
-	sf::Vector2f o= { 0-cir_radius,400};
+	sf::Vector2f o= { 0-cir_radius,window_sizeY/2};
 	sf::Vector2f n = previous_circle->circlepos_struct + sf::Vector2f{cir_radius, cir_radius};
 	drawLine(o,n);
 	std::cout << "initdraw bhayo" << std::endl;
@@ -158,7 +183,9 @@ void Shapesdraw::drawNormalCommit(sf::Vector2f cir_position, CommitNode* node)
 {
 	this->circle[node->commit_id].setRadius(cir_radius);
 	this->circle[node->commit_id].setPosition(cir_position);
-	this->circle[node->commit_id].setFillColor(sf::Color::Red);
+	
+	this->circle[node->commit_id].setFillColor(sf::Color::Color(191,67,48,255));
+
 
 	drawLine(previous_circle->circlepos_struct, cir_position);
 }
@@ -168,6 +195,7 @@ void Shapesdraw::drawNormalCommit(sf::Vector2f cir_position, CommitNode* node)
 
 void Shapesdraw::commitDraw(CommitNode* node)
 {
+
 	circle_information temp;
 	std::cout << "branch==" << current_branch << std::endl;
 	if (branch_endpoint)
@@ -196,7 +224,7 @@ void Shapesdraw::commitDraw(CommitNode* node)
 
 	
 	drawNormalCommit(cir_position,node);
-
+	
 
 	temp.node = node;
 	temp.circle_id = node->commit_id;
@@ -204,18 +232,23 @@ void Shapesdraw::commitDraw(CommitNode* node)
 	temp.circle = &circle[node->commit_id];
 	temp.circlepos_struct = this->cir_position;
 	vecCircle_information.push_back(temp);
+
+	
+
+
 	*previous_circle = temp;
 	if (current_branch == "MASTER")
 	{
 		EndpointInfo[0].branchName = temp.branch_information;
 		EndpointInfo[0].cirinfoEndpoint = temp;
-		return;
+		
 	}
 	else {
 		EndpointInfo[1].branchName = temp.branch_information;
 		EndpointInfo[1].cirinfoEndpoint = temp;
-		return;
+		
 	}
+	textDraw();
 
 
 }
@@ -256,50 +289,51 @@ void Shapesdraw::checkoutDrawbyID(int checked_out_id)
 void Shapesdraw::checkoutDrawbyBranch(std::string checkedout_branchName)
 {
 	CommitNode* temp;
-#ifndef branch_endpoint
+
+	if (!branch_endpoint) {
 	for (auto& iter : branches_status)
 	{
 		if (iter.first == checkedout_branchName)
 		{
 			temp = iter.second;
-			for (auto& iter : vecCircle_information)
+			for (auto& iterp : vecCircle_information)
 			{
-				if (iter.node == temp)
+				if (iterp.node == temp)
 				{
-					*checkedOut_circle = iter;
+					*checkedOut_circle = iterp;
 				}
 			}
 			return;
 
-	}
-}
-
-#endif // !branch_endpoint
-
-
-#ifdef branch_endpoint
-	for (auto& iter : branches_status)
-	{
-		if (iter.first == checkedout_branchName)
-		{
-			temp = iter.second;
-			for (auto& iter : vecCircle_information)
-			{
-				if (iter.node == temp)
-				{
-					*checkedOut_circle = iter;
-					*previous_circle = *checkedOut_circle;
-					isChecked_out = false;
-					return;
-
-				}
 			}
-			
-
 		}
+
 	}
 
-#endif // !branch_endpoint
+
+	if (branch_endpoint) {
+		for (auto& iter : branches_status)
+		{
+			if (iter.first == checkedout_branchName)
+			{
+				temp = iter.second;
+				for (auto& iterp : vecCircle_information)
+				{
+					if (iterp.node == temp)
+					{
+						*checkedOut_circle = iterp;
+						*previous_circle = *checkedOut_circle;
+						
+						return;
+
+					}
+				}
+
+
+			}
+		}
+
+	}
 
 
 	
@@ -308,7 +342,9 @@ void Shapesdraw::checkoutDraw(parse_return command_value)
 {
 	isChecked_out = true;
 	branch_endpoint = false;
-	int commitedCircleID = stoi(command_value.msg);
+	int commitedCircleID;
+	if(isCheckbyid)
+		 commitedCircleID = stoi(command_value.msg);
 
 
 	if (isCheckbyid)
@@ -365,8 +401,8 @@ void Shapesdraw::drawLineMerge(sf::Vector2f point1, sf::Vector2f point2) {
 	// Create rectangle shape
 	sf::RectangleShape rectangle(sf::Vector2f(width, height));
 	rectangle.setPosition(left, top);
-	rectangle.setFillColor(sf::Color::Yellow);
-	rectangle.setOutlineColor(sf::Color::Yellow);
+	rectangle.setFillColor(sf::Color::Color(172, 191, 48, 250));
+	rectangle.setOutlineColor(sf::Color::Color(172, 191, 48,250));
 	rectangle.setOutlineThickness(2);
 	
 
@@ -425,7 +461,7 @@ void Shapesdraw::mergeCommit(sf::Vector2f destination, sf::Vector2f current,std:
 	//drawNormalCommit(cir_position, node);
 	this->circle[node->commit_id].setRadius(cir_radius);
 	this->circle[node->commit_id].setPosition(cir_position);
-	this->circle[node->commit_id].setFillColor(sf::Color::Red);
+	this->circle[node->commit_id].setFillColor(sf::Color::Color(191, 67, 48, 255));
 
 
 	drawLine(cir_position, destination);
@@ -434,7 +470,7 @@ void Shapesdraw::mergeCommit(sf::Vector2f destination, sf::Vector2f current,std:
 	drawLineMerge({cir_position.x, current.y},cir_position );
 
 
-
+	
 
 	temp.node = node;
 	temp.circle_id = node->commit_id;
@@ -452,14 +488,56 @@ void Shapesdraw::mergeDraw(parse_return command_value)
 	circle_information currentCircle, destinationCircle;
 	currentCircle = *previous_circle;
 
+
 	for (auto& iter : EndpointInfo)
 	{
 		if (iter.branchName == command_value.msg)
 		{
 			destinationCircle = iter.cirinfoEndpoint;
+			
+
 		}
 	}
 	mergeCommit(destinationCircle.circlepos_struct,currentCircle.circlepos_struct,command_value.msg);
 
+
+}
+
+void Shapesdraw::textDraw()
+{
+	if (vecCircle_information.empty())
+	{
+		return;
+	}
+	if (!font.loadFromFile("arial.ttf")) {
+		// Handle font loading error
+		return;
+	}
+
+	for (auto& iter : vecCircle_information)
+	{
+		iter.text1.setString("");
+		for (auto& iter2 : EndpointInfo)
+		{
+			if (iter2.cirinfoEndpoint.circle_id == iter.circle_id)
+			{
+				iter.text1.setFont(font);
+				iter.text1.setString(iter.branch_information);
+				iter.text1.setCharacterSize(24);
+				iter.text1.setFillColor(sf::Color::White);
+				iter.text1.setPosition(iter.circlepos_struct.x+cir_radius/4,
+				iter.circlepos_struct.y + cir_radius-4 );
+			}
+		}
+ // Position text beneath the circle
+
+		iter.text2.setFont(font);
+		iter.text2.setString(iter.node->commit_name + "\n" + std::to_string(iter.circle_id));
+		iter.text2.setCharacterSize(24);
+		iter.text2.setFillColor(sf::Color::White);
+		iter.text2.setPosition(iter.circlepos_struct.x+ cir_radius / 3,
+		iter.circlepos_struct.y + cir_radius * 2 +2); // Position text beneath the circle
+
+	}
 
 }

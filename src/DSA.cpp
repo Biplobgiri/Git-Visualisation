@@ -1,5 +1,9 @@
 #include"DSA.hpp"
 #include<iostream>
+#include<time.h>
+#include"guiLogic.hpp"
+
+extern 	std::map<int, int>commitid_circleid;
 
 
 std::unordered_map< std::string, CommitNode*> branches_status;
@@ -22,6 +26,7 @@ int commit_id_val = 0;
 Token_Type what_executed=ERROR;
 
 
+
 void init_command(parse_return parse_value)
 {
 	if (!branches_status.empty())
@@ -36,17 +41,22 @@ void init_command(parse_return parse_value)
 }
 void commit(parse_return parse_value)
 {
+	//commit_id_val = rand_gen();
 	CommitNode* node = new CommitNode();
 	node->commit_name = parse_value.msg;
+
 	node->commit_id = commit_id_val;
 	commit_id_val++;
 	
-	if (detached_head != NULL && detached_head->forward[current_branch] != NULL)
+/*	if (detached_head != NULL && detached_head->forward[current_branch] != NULL)
 	{
 		prev_branch = current_branch;
 		recent_branch_change = true;
-		current_branch += "-c";//making a new child branch
+		current_branch = "master-child";//making a new child branch
 	}
+	*/
+
+
 
 	if (pre != NULL)
 	{
@@ -133,6 +143,7 @@ void checkout(parse_return parse_value)
 }
 void merge_commit(std::string branch_mergeto)
 {
+	//commit_id_val = rand_gen();
 	if (pre == NULL)
 	{
 		std::cout << "You tried to merge early" << std::endl;
@@ -151,6 +162,9 @@ void merge_commit(std::string branch_mergeto)
 		traverse = traverse->forward[current_branch];
 	}
 
+	//prev_branch = current_branch;
+	//current_branch = branch_mergeto;
+
 	CommitNode* node = new CommitNode;
 	node->commit_id = commit_id_val;
 	commit_id_val++;
@@ -160,8 +174,6 @@ void merge_commit(std::string branch_mergeto)
 	node->forward[current_branch] = nullptr;
 	node->backward[current_branch] = branches_status[current_branch];
 	node->backward[current_branch] = branches_status[branch_mergeto];
-
-
 
 	branches_status[branch_mergeto] = node;
 	branches_status[current_branch] = node;
