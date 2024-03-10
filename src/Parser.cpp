@@ -138,7 +138,7 @@ parse_return parse(const char* line)
 				argument.command = ERROR;
 			break;
 
-		case TEXT:
+		case TEXT:  
 			if (i >= 3) {
 				argument.msg=tokenizer.data.substr(1, tokenizer.data.length() - 2);
 				break;

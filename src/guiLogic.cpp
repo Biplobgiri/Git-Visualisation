@@ -254,7 +254,7 @@ void Shapesdraw::checkoutDrawbyID(int checked_out_id)
 			if (iter.circle_id == checked_out_id)
 			{
 				*checkedOut_circle = iter;
-				std::cout << "checkoutdrawbyid not" << std::endl;
+				//std::cout << "checkoutdrawbyid not" << std::endl;
 			}
 		}
 	}
@@ -265,7 +265,7 @@ void Shapesdraw::checkoutDrawbyID(int checked_out_id)
 			if (iter.circle_id == checked_out_id)
 			{
 				*checkedOut_circle = iter;
-				std::cout << "checkoutdrawbyid yes" << std::endl;
+				//std::cout << "checkoutdrawbyid yes" << std::endl;
 
 			}
 		}
@@ -445,7 +445,6 @@ void Shapesdraw::mergeCommit(sf::Vector2f destination, sf::Vector2f current,std:
 	CommitNode* node = branches_status[mergeTobranch];
 
 	this->cir_position = { destination.x +distance , (destination.y) };
-	std::cout << "inside of true commit" << std::endl;
 	dist_norm = 160;
 
 	//drawNormalCommit(cir_position, node);

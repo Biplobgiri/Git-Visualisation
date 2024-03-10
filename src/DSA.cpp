@@ -46,9 +46,6 @@ void commit(parse_return parse_value)
 	commit_id_val++;
 	
 
-
-
-
 	if (pre != NULL)
 	{
 		pre->forward[current_branch] = node;
